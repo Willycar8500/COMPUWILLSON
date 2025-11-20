@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catálogo 2026 - COMPUWILLSON</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&family=Great+Vibes&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        script: ['"Great Vibes"', 'cursive'],
+                    },
+                    colors: {
+                        primary: '#0f172a',
+                        christmasRed: '#b91c1c', 
+                        christmasGreen: '#15803d', 
+                        gold: '#fbbf24',
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #f8fafc; overflow-x: hidden; }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* SNOW ANIMATION */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: #fff;
+            font-size: 1em;
+            text-shadow: 0 0 5px #000;
+            animation-name: fall, shake-it;
+            animation-timing-function: linear, ease-in-out;
+            animation-iteration-count: infinite, infinite;
+            z-index: 50;
+            pointer-events: none;
+        }
+        @keyframes fall {
+            0% { top: -10% }
+            100% { top: 100% }
+        }
+        @keyframes shake-it {
+            0% { transform: translateX(0px) }
+            50% { transform: translateX(20px) }
+            100% { transform: translateX(0px) }
+        }
+        
+        /* Hide Scrollbar for clean UI */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #b91c1c; border-radius: 3px; }
+
+        /* Mobile input optimizations */
+        input, select, button { touch-action: manipulation; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- DATA & CONSTANTS ---
+        
+        const CATEGORIES = [
+            { id: 'CROMOS', label: '📅 Pared', icon: '📅' },
+            { id: 'ESCRITORIO', label: '🖥️ Escritorio', icon: '🖥️' },
+            { id: 'ANUALES', label: '🗓️ Anuales', icon: '🗓️' },
+            { id: 'CUADERNOS', label: '📒 Cuadernos', icon: '📒' },
+            { id: 'LAPICEROS', label: '🖊️ Lapiceros', icon: '🖊️' },
+            { id: 'ANUARIOS', label: '🎓 Anuarios', icon: '🎓' },
+        ];
+
+        const PRODUCTS = {
+            'CROMOS': [
+                { id: 'A', name: 'Calendario A', image: 'A.jpg', widthRatio: 40 },
+                { id: 'D', name: 'Calendario D', image: 'd.jpg', widthRatio: 37 },
+                { id: 'B', name: 'Calendario B', image: 'B.jpg', widthRatio: 34.5 },
+                { id: 'C', name: 'Calendario C', image: 'C.jpg', widthRatio: 28 },
+            ],
+            'ESCRITORIO': [
+                { id: 'STD', name: 'Estándar', image: 'ESCRITORIO ESTANDAR.jpg' },
+                { id: 'PERS', name: 'Personalizado', image: 'ESCRITORIO PERSONALIZADO.jpg' },
+            ],
+            'ANUALES': [
+                { id: 'DEC_D', name: 'Decorativo D', image: 'anual decorativo D.jpg', widthRatio: 30 },
+                { id: 'ANU_A', name: 'Anual A', image: 'anual A.jpg', widthRatio: 42 },
+                { id: 'ANU_X', name: 'Anual X', image: 'anual X.jpg', widthRatio: 34 },
+            ],
+            'LAPICEROS': [
+                { id: 'ECO', name: 'Ecológico', image: 'lapi standar.jpg' },
+                { id: 'CLAS', name: 'Clásico', image: 'lapi clasicos.jpg' },
+                { id: 'TRAN', name: 'Translúcido', image: 'lapi ecologico.jpg' },
+                { id: 'MET', name: 'Ejecutivo', image: 'lapi ejecutivo de metal.jpg' },
+            ],
+            'CUADERNOS': [], 
+            'ANUARIOS': [], 
+        };
+
+        const THEMES = ['Alimentos', 'Animales', 'Niños', 'Navidad', 'Paisajes', 'Turismo', 'Religioso', 'Futbol', 'Autos'];
+        
+        const SPECIAL_IMAGES = {
+            CUADERNOS_CORP: 'cuadernos empresa.jpg',
+            ANUARIO_SAMPLE: 'ANUARIO.jpg'
+        };
+        
+        const WHATSAPP_NUMBER = '51936477663';
+
+        const INITIAL_FORM_DATA = {
+            qty: 100,
+            designType: 'Catalogo',
+            tacoType: 'Trimestral',
+            themes: {},
+            photoCount: '12 Fotos',
+            size: 'A5',
+            cover: 'Dura',
+            sheets: 'Rayadas',
+            penColors: '',
+            engraving: '1 Color',
+            level: 'Inicial',
+            width: 19,
+            height: 25,
+            studentsQty: 0,
+            pagesQty: 0,
+            hasToga: 'No',
+            hasPhotos: 'No',
+            clientName: '',
+            whatsapp: '',
+            paymentMethod: '',
+            sendLater: false,
+        };
+
+        // --- COMPONENTS ---
+
+        const Header = ({ title, onBack }) => (
+            <div className="sticky top-0 z-40 bg-gradient-to-r from-red-700 to-red-600 text-white p-4 shadow-md flex items-center">
+                <button 
+                    onClick={onBack}
+                    className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg mr-4 text-sm font-bold transition-colors flex items-center gap-1"
+                >
+                    <span>←</span> Inicio
+                </button>
+                <h3 className="text-lg font-bold m-0 truncate">{title}</h3>
+            </div>
+        );
+
+        const Modal = ({ src, onClose }) => (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
+                <div className="relative max-w-4xl max-h-full w-full flex justify-center">
+                    <img src={src} className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" onClick={e => e.stopPropagation()} />
+                    <button onClick={onClose} className="absolute top-4 right-4 bg-white/10 text-white rounded-full p-2">✕</button>
+                </div>
+            </div>
+        );
+
+        const WelcomeScreen = ({ onSelect }) => {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const audioRef = useRef(null);
+
+            const toggleMusic = () => {
+                if (audioRef.current) {
+                    if (isPlaying) audioRef.current.pause();
+                    else audioRef.current.play().catch(e => console.log("Autoplay prevented", e));
+                    setIsPlaying(!isPlaying);
+                }
+            };
+
+            // Generate Snowflakes
+            const snowflakes = Array.from({ length: 30 }).map((_, i) => ({
+                id: i,
+                left: `${Math.random() * 100}%`,
+                delay: `${Math.random() * 10}s`,
+                duration: `${5 + Math.random() * 10}s`,
+                size: `${Math.random() * 1.5 + 0.5}em`
+            }));
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-[#7f1d1d] via-[#991b1b] to-[#064e3b] text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+                    
+                    {/* Snow */}
+                    {snowflakes.map(flake => (
+                        <div key={flake.id} className="snowflake" style={{ left: flake.left, animationDelay: flake.delay, animationDuration: flake.duration, fontSize: flake.size }}>❄</div>
+                    ))}
+
+                    {/* Audio */}
+                    <audio ref={audioRef} loop src="https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=we-wish-you-a-merry-christmas-127995.mp3" />
+                    
+                    <button onClick={toggleMusic} className="absolute top-6 right-6 z-30 bg-white/20 backdrop-blur-md p-3 rounded-full hover:bg-white/30 transition-all shadow-lg animate-pulse flex items-center gap-2">
+                        {isPlaying ? '🔊' : '🔇'} <span className="text-xs font-bold hidden md:inline">Música</span>
+                    </button>
+
+                    <div className="z-10 text-center mb-8 w-full mt-10 md:mt-0">
+                        <h1 className="text-5xl md:text-7xl font-black text-center mb-2 tracking-tight drop-shadow-lg">
+                            CATÁLOGO <span className="text-gold">2026</span>
+                        </h1>
+                        <div className="relative inline-block mt-2">
+                            <div className="bg-gradient-to-r from-green-600 to-green-700 border-2 border-yellow-400 text-white px-8 py-3 rounded-full font-bold text-xl shadow-xl transform -rotate-2 hover:rotate-0 transition-transform cursor-default">
+                                🎅 ¡Campaña Navideña! 🎄
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl w-full z-10 pb-10">
+                        {CATEGORIES.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => onSelect(cat.id)}
+                                className="bg-white/95 backdrop-blur-sm text-slate-800 p-4 md:p-6 rounded-2xl shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center gap-2 border-b-4 border-red-600 active:scale-95"
+                            >
+                                <span className="text-4xl md:text-5xl filter drop-shadow-sm">{cat.icon}</span>
+                                <span className="font-bold text-sm md:text-lg leading-tight">{cat.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="absolute bottom-0 left-0 w-full h-16 bg-[url('https://img.freepik.com/free-vector/white-snow-border-set_1308-119790.jpg?w=1380')] bg-repeat-x bg-contain opacity-30 pointer-events-none mix-blend-screen"></div>
+                </div>
+            );
+        };
+
+        const ProductSelection = ({ category, onSelect, onZoom }) => {
+            if (category === 'CUADERNOS') {
+                return (
+                    <div className="flex flex-col items-center text-center">
+                        <div className="relative w-full max-w-lg aspect-video rounded-xl overflow-hidden shadow-lg mb-6 bg-black">
+                            <iframe className="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/GIsYdzPEwik" frameBorder="0" allowFullScreen></iframe>
+                        </div>
+                        <img src={SPECIAL_IMAGES.CUADERNOS_CORP} className="w-full max-w-xs rounded-lg shadow-md mb-6 object-cover h-64" />
+                        <button onClick={() => onSelect({ id: 'CUADERNO', name: 'Cuaderno Corporativo', image: SPECIAL_IMAGES.CUADERNOS_CORP })} className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-full text-lg shadow-lg transition-colors w-full max-w-xs">COTIZAR</button>
+                    </div>
+                );
+            }
+            if (category === 'ANUARIOS') {
+                return (
+                    <div className="flex flex-col items-center text-center">
+                        <div className="relative w-full max-w-lg aspect-video rounded-xl overflow-hidden shadow-lg mb-6 bg-black">
+                            <iframe className="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/tCHgmcE2n_s" frameBorder="0" allowFullScreen></iframe>
+                        </div>
+                        <div className="cursor-zoom-in mb-6 transition-transform hover:scale-105" onClick={() => onZoom(SPECIAL_IMAGES.ANUARIO_SAMPLE)}>
+                            <img src={SPECIAL_IMAGES.ANUARIO_SAMPLE} className="w-full max-w-md rounded-lg shadow-lg" />
+                        </div>
+                        <button onClick={() => onSelect({ id: 'ANUARIO', name: 'Anuario Escolar', image: SPECIAL_IMAGES.ANUARIO_SAMPLE })} className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-full text-lg shadow-lg transition-colors w-full max-w-xs">PERSONALIZAR</button>
+                    </div>
+                );
+            }
+
+            const products = PRODUCTS[category] || [];
+            const maxRatio = Math.max(...products.map(p => p.widthRatio || 0));
+
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {products.map((item) => {
+                        let widthPercent = 100;
+                        if (maxRatio > 0 && item.widthRatio) {
+                            widthPercent = (item.widthRatio / maxRatio) * 100;
+                            if (widthPercent < 60) widthPercent = 60;
+                        }
+                        return (
+                            <div key={item.id} className="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:shadow-md transition-shadow bg-white">
+                                <div className="h-48 w-full flex items-center justify-center mb-3 cursor-zoom-in" onClick={() => onZoom(item.image)}>
+                                    <img src={item.image} alt={item.name} style={{ width: `${widthPercent}%` }} className="max-h-full object-contain rounded shadow-sm transition-transform hover:scale-105" />
+                                </div>
+                                <h3 className="font-semibold text-gray-700 mb-3 text-center">{item.name}</h3>
+                                <button onClick={() => onSelect(item)} className="bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded w-full transition-colors mt-auto">SELECCIONAR</button>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        const ConfigurationForm = ({ category, product, data, onChange, onNext, onBack }) => {
+            const [error, setError] = useState(null);
+            const [themeSumError, setThemeSumError] = useState(null);
+
+            const isCromosOrAnuales = category === 'CROMOS' || category === 'ANUALES';
+            const isDeskStd = category === 'ESCRITORIO' && product.id === 'STD';
+            const isDeskPers = category === 'ESCRITORIO' && product.id === 'PERS';
+            const isCuadernos = category === 'CUADERNOS';
+            const isAnuarios = category === 'ANUARIOS';
+            
+            let minQty = 100;
+            let stepQty = 50;
+            let minTheme = 25;
+
+            if (isCromosOrAnuales) {
+                if (data.designType === 'Personalizado') { minQty = 250; stepQty = 50; } 
+                else { minQty = 100; stepQty = 50; minTheme = 25; }
+            } else if (category === 'ESCRITORIO') {
+                if (isDeskStd) { minQty = 50; stepQty = 50; minTheme = 50; } 
+                else { minQty = 12; stepQty = 1; }
+            } else if (category === 'CUADERNOS') { minQty = 100; stepQty = 1; } 
+            else if (category === 'LAPICEROS') { minQty = 100; stepQty = 100; } 
+            else if (isAnuarios) { minQty = 10; stepQty = 1; }
+
+            const handleThemeChange = (theme, valStr) => {
+                const val = parseInt(valStr) || 0;
+                onChange({ ...data, themes: { ...data.themes, [theme]: val } });
+            };
+
+            useEffect(() => {
+                const showThemes = (isCromosOrAnuales && data.designType === 'Catalogo') || isDeskStd;
+                if (showThemes) {
+                    let sum = 0, badMultiple = false;
+                    Object.values(data.themes).forEach(v => {
+                        sum += v;
+                        if (v > 0 && v % minTheme !== 0) badMultiple = true;
+                    });
+                    if (badMultiple) setThemeSumError(`Error: Los temas deben ser múltiplos de ${minTheme}`);
+                    else if (sum !== data.qty) setThemeSumError(`Suma actual: ${sum} / Objetivo: ${data.qty}`);
+                    else setThemeSumError(null);
+                } else {
+                    setThemeSumError(null);
+                }
+            }, [data.themes, data.qty, data.designType, isCromosOrAnuales, isDeskStd, minTheme]);
+
+            const handleNext = () => {
+                if (data.qty < minQty) { setError(`La cantidad mínima es ${minQty}`); return; }
+                if (category !== 'ANUARIOS' && data.qty % stepQty !== 0) { setError(`La cantidad debe ser múltiplo de ${stepQty}`); return; }
+                if (themeSumError) { setError("Por favor corrige la distribución de temas."); return; }
+                if (category === 'ANUARIOS' && !data.studentsQty) { setError("Ingrese la cantidad de alumnos"); return; }
+                setError(null);
+                onNext();
+            };
+
+            return (
+                <div className="pb-32">
+                    <h3 className="text-2xl font-bold text-red-700 mb-4">{product.name}</h3>
+                    {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 animate-pulse">{error}</div>}
+
+                    <div className="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <label className="block font-bold mb-2 text-gray-700">{category === 'ANUARIOS' ? `Cantidad (${minQty} mín):` : `Cantidad (Mín ${minQty}):`}</label>
+                        <input 
+                            type="number"
+                            className={`w-full p-4 border-2 rounded-xl text-center text-2xl font-bold ${data.qty < minQty || (category !== 'ANUARIOS' && data.qty % stepQty !== 0) ? 'border-red-500 bg-red-50 text-red-800' : 'border-green-500 bg-green-50 text-green-800 focus:ring-green-200'}`}
+                            min={minQty} step={stepQty} value={data.qty}
+                            onChange={(e) => onChange({ ...data, qty: parseInt(e.target.value) || 0 })}
+                        />
+                        <small className="text-gray-500 mt-2 block text-center">{category !== 'ANUARIOS' ? `Sube de ${stepQty} en ${stepQty}` : 'Cantidad exacta'}</small>
+                    </div>
+
+                    {/* CROMOS/ANUALES */}
+                    {isCromosOrAnuales && (
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block font-semibold mb-3 text-gray-700">Tipo de Diseño:</label>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    {['Catalogo', 'Personalizado'].map(opt => (
+                                        <label key={opt} className={`flex-1 border-2 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95 ${data.designType === opt ? 'bg-red-50 border-red-500 text-red-800 font-bold shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                                            <input type="radio" name="designType" value={opt} checked={data.designType === opt} onChange={() => onChange({ ...data, designType: opt })} className="hidden" />
+                                            {opt}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            {category === 'CROMOS' && (
+                                <div>
+                                    <label className="block font-semibold mb-3 text-gray-700">Tipo de Taco:</label>
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        {['Trimestral', 'Bimensual'].map(opt => (
+                                            <label key={opt} className={`flex-1 border-2 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95 ${data.tacoType === opt ? 'bg-red-50 border-red-500 text-red-800 font-bold shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                                                <input type="radio" name="tacoType" value={opt} checked={data.tacoType === opt} onChange={() => onChange({ ...data, tacoType: opt })} className="hidden" />
+                                                {opt}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {data.designType === 'Catalogo' && (
+                                <div className="border border-gray-200 rounded-xl p-4 mt-4 bg-white shadow-sm">
+                                    <label className="block font-bold mb-3 text-gray-700">Distribución (Múltiplos de {minTheme}):</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {THEMES.map(t => (
+                                            <div key={t}>
+                                                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">{t}</label>
+                                                <input type="number" min="0" step={minTheme} value={data.themes[t] || ''} placeholder="0" onChange={(e) => handleThemeChange(t, e.target.value)} className="w-full border-2 border-gray-200 p-2 rounded-lg focus:border-blue-400 outline-none text-center font-medium" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className={`mt-3 p-3 text-sm rounded-lg font-bold text-center ${themeSumError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{themeSumError || '✓ Suma Correcta'}</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ESCRITORIO */}
+                    {category === 'ESCRITORIO' && (
+                        <div className="space-y-6">
+                            {isDeskStd && (
+                                <div className="border border-gray-200 bg-white rounded-xl p-4 shadow-sm">
+                                    <label className="block font-bold mb-3 text-gray-700">Temas (Múltiplos de {minTheme}):</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {THEMES.map(t => (
+                                            <div key={t}>
+                                                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">{t}</label>
+                                                <input type="number" min="0" step={minTheme} value={data.themes[t] || ''} placeholder="0" onChange={(e) => handleThemeChange(t, e.target.value)} className="w-full border-2 border-gray-200 p-2 rounded-lg focus:border-blue-400 outline-none text-center font-medium" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className={`mt-3 p-3 text-sm rounded-lg font-bold text-center ${themeSumError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{themeSumError || '✓ Suma Correcta'}</div>
+                                </div>
+                            )}
+                            {isDeskPers && (
+                                <div>
+                                    <label className="block font-semibold mb-3 text-gray-700">Impresión:</label>
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        {['12 Fotos', '24 Fotos'].map(opt => (
+                                            <label key={opt} className={`flex-1 border-2 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95 ${data.photoCount === opt ? 'bg-red-50 border-red-500 text-red-800 font-bold shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                                                <input type="radio" name="photoCount" value={opt} checked={data.photoCount === opt} onChange={() => onChange({ ...data, photoCount: opt })} className="hidden" />
+                                                {opt}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* CUADERNOS */}
+                    {isCuadernos && (
+                        <div className="space-y-6">
+                            {[
+                                { label: 'Tamaño', key: 'size', opts: ['A5', 'A4'] },
+                                { label: 'Tipo de Tapa', key: 'cover', opts: ['Dura', 'Blanda'] },
+                                { label: 'Interior', key: 'sheets', opts: ['Rayadas', 'Cuadriculadas', 'En blanco'] }
+                            ].map(field => (
+                                <div key={field.key}>
+                                    <label className="block font-semibold mb-3 text-gray-700">{field.label}:</label>
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        {field.opts.map(opt => (
+                                            <label key={opt} className={`flex-1 border-2 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95 ${data[field.key] === opt ? 'bg-red-50 border-red-500 text-red-800 font-bold shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                                                <input type="radio" name={field.key} value={opt} checked={data[field.key] === opt} onChange={() => onChange({ ...data, [field.key]: opt })} className="hidden" />
+                                                {opt}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* LAPICEROS */}
+                    {category === 'LAPICEROS' && (
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block font-semibold mb-2 text-gray-700">Colores (Ej: 100 Azul):</label>
+                                <input type="text" className="w-full border-2 border-gray-200 p-4 rounded-xl focus:border-blue-500 outline-none" value={data.penColors} onChange={(e) => onChange({...data, penColors: e.target.value})} placeholder="Describe los colores..." />
+                            </div>
+                            <div>
+                                <label className="block font-semibold mb-3 text-gray-700">Tipo de Grabado:</label>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    {['1 Color', 'Full Color'].map(opt => (
+                                        <label key={opt} className={`flex-1 border-2 rounded-xl p-4 text-center cursor-pointer transition-all active:scale-95 ${data.engraving === opt ? 'bg-red-50 border-red-500 text-red-800 font-bold shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                                            <input type="radio" name="engraving" value={opt} checked={data.engraving === opt} onChange={() => onChange({ ...data, engraving: opt })} className="hidden" />
+                                            {opt}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ANUARIOS */}
+                    {isAnuarios && (
+                        <div className="space-y-6">
+                            <img src={product.image} alt="Anuario" className="w-full max-w-xs mx-auto rounded-lg shadow mb-4" />
+                            <div>
+                                <label className="block font-semibold mb-3 text-gray-700">Nivel:</label>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    {['Inicial', 'Primaria', 'Secundaria'].map(opt => (
+                                        <label key={opt} className={`flex-1 border-2 rounded-xl p-3 text-sm text-center cursor-pointer transition-all active:scale-95 ${data.level === opt ? 'bg-red-50 border-red-500 text-red-800 font-bold shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                                            <input type="radio" name="level" value={opt} checked={data.level === opt} onChange={() => onChange({ ...data, level: opt })} className="hidden" />
+                                            {opt}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                <label className="block font-bold mb-3 text-gray-700">Especificaciones:</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div><span className="text-xs font-bold text-gray-500 uppercase block mb-1">Ancho (cm)</span><input type="number" className="w-full border-2 border-gray-200 p-2 rounded-lg text-center" value={data.width} onChange={(e) => onChange({...data, width: parseInt(e.target.value) || 0})} /></div>
+                                    <div><span className="text-xs font-bold text-gray-500 uppercase block mb-1">Alto (cm)</span><input type="number" className="w-full border-2 border-gray-200 p-2 rounded-lg text-center" value={data.height} onChange={(e) => onChange({...data, height: parseInt(e.target.value) || 0})} /></div>
+                                    <div><span className="text-xs font-bold text-gray-500 uppercase block mb-1">Alumnos</span><input type="number" className="w-full border-2 border-gray-200 p-2 rounded-lg text-center" value={data.studentsQty} onChange={(e) => onChange({...data, studentsQty: parseInt(e.target.value) || 0})} /></div>
+                                    <div><span className="text-xs font-bold text-gray-500 uppercase block mb-1">Hojas</span><input type="number" className="w-full border-2 border-gray-200 p-2 rounded-lg text-center" value={data.pagesQty} onChange={(e) => onChange({...data, pagesQty: parseInt(e.target.value) || 0})} /></div>
+                                </div>
+                            </div>
+                            {[ { label: 'Incluye Toga', key: 'hasToga' }, { label: 'Sesión de Fotos', key: 'hasPhotos' } ].map(field => (
+                                <div key={field.key}>
+                                    <label className="block font-semibold mb-3 text-gray-700">{field.label}:</label>
+                                    <div className="flex gap-2">
+                                        {['Sí', 'No'].map(opt => (
+                                            <label key={opt} className={`flex-1 border-2 rounded-xl p-3 text-center cursor-pointer transition-all active:scale-95 ${data[field.key] === opt ? 'bg-red-50 border-red-500 text-red-800 font-bold shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                                                <input type="radio" name={field.key} value={opt} checked={data[field.key] === opt} onChange={() => onChange({ ...data, [field.key]: opt })} className="hidden" />
+                                                {opt}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 flex gap-4 justify-center shadow-lg z-50 glass">
+                        <button onClick={onBack} className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full font-semibold transition-colors w-1/3 border border-gray-300">Atrás</button>
+                        <button onClick={handleNext} className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-full font-bold text-lg shadow-lg transition-colors w-2/3">Continuar</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const ContactForm = ({ data, category, product, onChange, onBack }) => {
+            const getLabelForFile = () => {
+                if (category === 'ANUARIOS') return "Lista Alumnos:";
+                if (category === 'ESCRITORIO') return product.id === 'STD' ? "Boceto:" : "12/24 Fotos:";
+                if (category === 'CUADERNOS') return "Diseño Tapa:";
+                if (category === 'LAPICEROS') return "Logo:";
+                if (data.designType === 'Personalizado') return "Diseño Personalizado:";
+                return "Boceto (Opcional):";
+            };
+
+            const handleSend = () => {
+                if (!data.clientName) { alert("Por favor ingrese su nombre"); return; }
+                let msg = `Hola, cotizo *${product.name}*\nCANT: ${data.qty}\n`;
+
+                if (category === 'ANUARIOS') {
+                    msg += `Nivel: ${data.level}\nMedidas: ${data.width}x${data.height}\nAlumnos: ${data.studentsQty}\nHojas: ${data.pagesQty}\nToga: ${data.hasToga}, Fotos: ${data.hasPhotos}\n`;
+                } else {
+                    if (category === 'CROMOS' || category === 'ANUALES') { msg += `Diseño: ${data.designType}\n`; if (category === 'CROMOS') msg += `Taco: ${data.tacoType}\n`; }
+                    if (category === 'ESCRITORIO' && product.id === 'PERS') msg += `Impresión: ${data.photoCount}\n`;
+                    if (category === 'CUADERNOS') { msg += `Tamaño: ${data.size}\nTapa: ${data.cover}\nHojas: ${data.sheets}\n`; }
+                    if (category === 'LAPICEROS') { msg += `Colores: ${data.penColors}\nGrabado: ${data.engraving}\n`; }
+                    const themesList = Object.entries(data.themes).filter(([_, val]) => val > 0).map(([k, v]) => `${k}: ${v}`).join(', ');
+                    if (themesList) msg += `Temas: ${themesList}\n`;
+                }
+                msg += `\nCliente: ${data.clientName}`;
+                if (data.paymentMethod) msg += `\nPago: ${data.paymentMethod}`;
+                if (data.sendLater) msg += `\n(Enviaré archivos por WhatsApp)`;
+                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+            };
+
+            return (
+                <div className="space-y-5 pb-20">
+                    <h2 className="text-center text-2xl font-bold text-blue-700">Contacto</h2>
+                    <div><label className="block font-semibold mb-1">Nombre:</label><input type="text" value={data.clientName} onChange={(e) => onChange({ ...data, clientName: e.target.value })} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" placeholder="Tu nombre o empresa" /></div>
+                    <div><label className="block font-semibold mb-1">WhatsApp:</label><input type="tel" maxLength={9} value={data.whatsapp} onChange={(e) => onChange({ ...data, whatsapp: e.target.value })} className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" placeholder="999 999 999" /></div>
+                    <div>
+                        <label className="block font-semibold mb-1">Pago:</label>
+                        <select value={data.paymentMethod} onChange={(e) => onChange({ ...data, paymentMethod: e.target.value })} className="w-full border p-3 rounded-lg bg-white">
+                            <option value="">Seleccionar...</option><option value="Yape">Yape</option><option value="Plin">Plin</option><option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div className="border-t pt-4">
+                        <label className="block font-semibold mb-2">{getLabelForFile()}</label>
+                        <input type="file" className="w-full mb-2 p-2 border rounded bg-gray-50" />
+                        <label className="flex items-center gap-2 cursor-pointer mt-2"><input type="checkbox" checked={data.sendLater} onChange={(e) => onChange({ ...data, sendLater: e.target.checked })} className="w-5 h-5 text-blue-600" /><span className="text-gray-700">Lo enviaré por WhatsApp</span></label>
+                    </div>
+                    <div className="flex gap-4 mt-8 pt-4">
+                        <button onClick={onBack} className="px-6 py-3 bg-gray-400 hover:bg-gray-500 text-white rounded-full font-semibold transition-colors">Atrás</button>
+                        <button onClick={handleSend} className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold text-lg shadow-md transition-colors flex items-center justify-center gap-2"><span>ENVIAR PEDIDO</span></button>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [step, setStep] = useState(0);
+            const [category, setCategory] = useState(null);
+            const [product, setProduct] = useState(null);
+            const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+            const [modalImage, setModalImage] = useState(null);
+
+            const handleCategorySelect = (cat) => { setCategory(cat); setStep(1); };
+            const handleProductSelect = (prod) => {
+                setProduct(prod);
+                setFormData({ ...INITIAL_FORM_DATA, qty: (category === 'ESCRITORIO' && prod.id === 'PERS') ? 12 : 100 });
+                setStep(2);
+            };
+            const handleBack = () => {
+                if (step === 1) { setStep(0); setCategory(null); }
+                else if (step === 2) { setStep(1); setProduct(null); }
+                else if (step === 3) setStep(2);
+            };
+            const handleReset = () => { setStep(0); setCategory(null); setProduct(null); setFormData(INITIAL_FORM_DATA); };
+
+            return (
+                <div className="min-h-screen flex flex-col font-sans">
+                    {modalImage && <Modal src={modalImage} onClose={() => setModalImage(null)} />}
+                    {step === 0 ? <WelcomeScreen onSelect={handleCategorySelect} /> : (
+                        <div className="max-w-3xl w-full mx-auto p-4 bg-white min-h-screen shadow-lg">
+                            <Header title={step === 1 ? "Selecciona Modelo" : (step === 3 ? "Contacto" : "Cotización")} onBack={handleReset} />
+                            <div className="mt-6">
+                                <div className="flex justify-center gap-2 mb-8">
+                                    {[1, 2, 3].map(i => <div key={i} className={`h-2 w-8 rounded-full transition-colors ${step >= i ? 'bg-red-600' : 'bg-gray-200'}`} />)}
+                                </div>
+                                {step === 1 && category && <ProductSelection category={category} onSelect={handleProductSelect} onZoom={setModalImage} />}
+                                {step === 2 && category && product && <ConfigurationForm category={category} product={product} data={formData} onChange={setFormData} onNext={() => setStep(3)} onBack={handleBack} />}
+                                {step === 3 && category && product && <ContactForm data={formData} category={category} product={product} onChange={setFormData} onBack={handleBack} />}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
